@@ -29,7 +29,7 @@ describe('DataSource', () => {
       expect(() => {
         DataSource.fromJS({
           name: 'wiki hello',
-          engine: 'druid',
+          clusterName: 'druid',
           source: 'wiki',
           attributes: [
             { name: '__time', type: 'TIME' },
@@ -56,7 +56,7 @@ describe('DataSource', () => {
       expect(() => {
         DataSource.fromJS({
           name: 'wiki',
-          engine: 'druid',
+          clusterName: 'druid',
           source: 'wiki',
           defaultSortMeasure: 'gaga',
           attributes: [
@@ -84,7 +84,7 @@ describe('DataSource', () => {
       expect(() => {
         DataSource.fromJS({
           name: 'wiki',
-          engine: 'druid',
+          clusterName: 'druid',
           source: 'wiki',
           attributes: [
             { name: '__time', type: 'TIME' },
@@ -111,7 +111,7 @@ describe('DataSource', () => {
       expect(() => {
         DataSource.fromJS({
           name: 'wiki',
-          engine: 'druid',
+          clusterName: 'druid',
           source: 'wiki',
           attributes: [
             { name: '__time', type: 'TIME' },
@@ -142,7 +142,7 @@ describe('DataSource', () => {
       expect(() => {
         DataSource.fromJS({
           name: 'wiki',
-          engine: 'druid',
+          clusterName: 'druid',
           source: 'wiki',
           attributes: [
             { name: '__time', type: 'TIME' },
@@ -175,7 +175,7 @@ describe('DataSource', () => {
     it("raises issues", () => {
       var dataSource = DataSource.fromJS({
         name: 'wiki',
-        engine: 'druid',
+        clusterName: 'druid',
         source: 'wiki',
         attributes: [
           { name: '__time', type: 'TIME' },
@@ -228,11 +228,123 @@ describe('DataSource', () => {
   });
 
 
+  describe.only("back compat", () => {
+    it("works in a generic case", () => {
+      var legacyDataSourceJS: any = {
+        "name": "wiki",
+        "engine": "druid",
+        "source": "wiki",
+        "subsetFilter": null,
+        "dimensions": [
+          {
+            "kind": "time",
+            "name": "__time",
+            "expression": "$__time"
+          },
+          {
+            "name": "page"
+          }
+        ],
+        "measures": [
+          {
+            "name": "added",
+            "expression": "$main.sum($added)"
+          }
+        ],
+        "options": {
+          "skipIntrospection": true,
+          "attributeOverrides": [
+            {
+              name: 'page',
+              type: 'STRING'
+            }
+          ],
+          "defaultSplits": "__time"
+        }
+      };
+
+      var dataSource = DataSource.fromJS(legacyDataSourceJS, context);
+
+      expect(dataSource.toJS()).to.deep.equal({
+        "attributeOverrides": [
+          {
+            "name": "page",
+            "type": "STRING"
+          }
+        ],
+        "clusterName": "druid",
+        "defaultSortMeasure": "added",
+        "defaultSplits": [
+          {
+            "expression": {
+              "name": "__time",
+              "op": "ref"
+            }
+          }
+        ],
+        "description": "",
+        "dimensions": [
+          {
+            "expression": {
+              "name": "__time",
+              "op": "ref"
+            },
+            "kind": "time",
+            "name": "__time",
+            "title": "Time"
+          },
+          {
+            "expression": {
+              "name": "page",
+              "op": "ref"
+            },
+            "kind": "string",
+            "name": "page",
+            "title": "Page"
+          }
+        ],
+        "introspection": "none",
+        "measures": [
+          {
+            "expression": {
+              "action": {
+                "action": "sum",
+                "expression": {
+                  "name": "added",
+                  "op": "ref"
+                }
+              },
+              "expression": {
+                "name": "main",
+                "op": "ref"
+              },
+              "op": "chain"
+            },
+            "name": "added",
+            "title": "Added"
+          }
+        ],
+        "name": "wiki",
+        "refreshRule": {
+          "refresh": "PT1M",
+          "rule": "query"
+        },
+        "source": "wiki",
+        "subsetFilter": null,
+        "timeAttribute": "__time",
+        "title": "Wiki"
+      });
+
+    });
+
+  });
+
+
   describe("#deduceAttributes", () => {
     it("works in a generic case", () => {
       var dataSource = DataSource.fromJS({
         "name": "wiki",
-        "engine": "druid",
+        "clusterName": "druid",
         "source": "wiki",
         "subsetFilter": null,
         introspection: 'autofill-all',
@@ -319,7 +431,7 @@ describe('DataSource', () => {
     var dataSourceStub = DataSource.fromJS({
       name: 'wiki',
       title: 'Wiki',
-      engine: 'druid',
+      clusterName: 'druid',
       source: 'wiki',
       subsetFilter: null,
       introspection: 'autofill-all',
@@ -344,7 +456,7 @@ describe('DataSource', () => {
         "name": "wiki",
         "title": "Wiki",
         "description": "",
-        "engine": "druid",
+        "clusterName": "druid",
         "source": "wiki",
         "refreshRule": {
           "refresh": "PT1M",
@@ -437,7 +549,7 @@ describe('DataSource', () => {
         "name": "wiki",
         "title": "Wiki",
         "description": "",
-        "engine": "druid",
+        "clusterName": "druid",
         "source": "wiki",
         "refreshRule": {
           "refresh": "PT1M",
@@ -666,7 +778,7 @@ describe('DataSource', () => {
       var dataSourceWithDim = DataSource.fromJS({
         name: 'wiki',
         title: 'Wiki',
-        engine: 'druid',
+        clusterName: 'druid',
         source: 'wiki',
         subsetFilter: null,
         introspection: 'autofill-all',
@@ -699,7 +811,7 @@ describe('DataSource', () => {
     var dataSource = DataSource.fromJS({
       name: 'wiki',
       title: 'Wiki',
-      engine: 'druid',
+      clusterName: 'druid',
       source: 'wiki',
       subsetFilter: null,
       introspection: 'autofill-all',
